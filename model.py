@@ -12,7 +12,7 @@ The M5P algorithm (Quinlan, 1992) builds a model tree where:
 This hybrid approach combines the interpretability of decision trees with
 the predictive power of linear models.
 
-Author: Member 3 (ZAyoub)
+Author: Member 3 (ZZemmahi)
 Project: ENSAM M5P Implementation
 """
 
