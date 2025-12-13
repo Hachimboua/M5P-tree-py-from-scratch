@@ -14,7 +14,7 @@ The prediction process:
 Optional smoothing combines predictions from ancestor nodes
 for more robust estimates.
 
-Author: Member 3 (ZAyoub)
+Author: Member 3 (ZZemmahi)
 Project: ENSAM M5P Implementation
 """
 
