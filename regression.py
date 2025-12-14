@@ -7,12 +7,12 @@ def fit_linear_model(X, y):
     
     coeffs, residuals, rank, s = np.linalg.lstsq(X_with_bias, y, rcond=None)
     
-    # Fallback to ridge if matrix is singular
+    # Fallback to ridge if singular
     if rank < X_with_bias.shape[1]:
-        lambda_ridge = 1e-6
+        ridge_lambda = 1e-6
         XtX = X_with_bias.T @ X_with_bias
         Xty = X_with_bias.T @ y
-        coeffs = np.linalg.solve(XtX + lambda_ridge * np.eye(n_features + 1), Xty)
+        coeffs = np.linalg.solve(XtX + ridge_lambda * np.eye(n_features + 1), Xty)
     
     return {
         'intercept': coeffs[0],

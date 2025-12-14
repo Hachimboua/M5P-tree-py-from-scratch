@@ -27,7 +27,7 @@ def prune_tree(node):
     
     subtree_err = subtree_error(node)
     linear_err = compute_error(node, node.linear_model)
-
+    
     if linear_err <= subtree_err:
         node.is_leaf = True
         node.left = None
