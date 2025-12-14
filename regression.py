@@ -7,7 +7,6 @@ def fit_linear_model(X, y):
     
     coeffs, residuals, rank, s = np.linalg.lstsq(X_with_bias, y, rcond=None)
     
-    # Fallback to ridge if singular
     if rank < X_with_bias.shape[1]:
         ridge_lambda = 1e-6
         XtX = X_with_bias.T @ X_with_bias

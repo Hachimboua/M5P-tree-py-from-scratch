@@ -18,17 +18,17 @@ def subtree_error(node):
     return (left_error + right_error) / total_samples
 
 
-def prune_tree(node):
+def prune_tree(node, threshold=0.95):
     if node.is_leaf:
         return
     
-    prune_tree(node.left)
-    prune_tree(node.right)
+    prune_tree(node.left, threshold)
+    prune_tree(node.right, threshold)
     
     subtree_err = subtree_error(node)
     linear_err = compute_error(node, node.linear_model)
     
-    if linear_err <= subtree_err:
+    if linear_err <= subtree_err * threshold:
         node.is_leaf = True
         node.left = None
         node.right = None

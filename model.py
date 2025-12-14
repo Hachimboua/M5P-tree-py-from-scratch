@@ -5,11 +5,12 @@ from pruning import prune_tree, smooth_predictions
 
 
 class M5P:
-    def __init__(self, min_samples_split=10, max_depth=None, prune=True, smoothing=True):
+    def __init__(self, min_samples_split=10, max_depth=None, prune=True, smoothing=True, prune_threshold=0.95):
         self.min_samples_split = min_samples_split
         self.max_depth = max_depth
         self.prune = prune
         self.smoothing = smoothing
+        self.prune_threshold = prune_threshold
         self.tree = None
     
     def fit(self, X, y):
@@ -23,7 +24,7 @@ class M5P:
         self._add_linear_models(self.tree.root)
         
         if self.prune:
-            prune_tree(self.tree.root)
+            prune_tree(self.tree.root, threshold=self.prune_threshold)
         
         if self.smoothing:
             smooth_predictions(self.tree.root)
