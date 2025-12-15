@@ -32,8 +32,13 @@ class M5P:
         return self
     
     def _add_data_to_nodes(self, node, X, y):
+        if node is None:
+            return
+        
         node.X = X
         node.y = y
+        node.n_samples = len(y)
+        node.node_mean = np.mean(y) if len(y) > 0 else 0.0
         
         if not node.is_leaf and node.left is not None and node.right is not None:
             left_mask = X[:, node.feature] <= node.threshold
@@ -43,8 +48,13 @@ class M5P:
             self._add_data_to_nodes(node.right, X[right_mask], y[right_mask])
     
     def _add_linear_models(self, node):
+        if node is None:
+            return
+        
         if hasattr(node, 'X') and hasattr(node, 'y') and len(node.X) > 0:
             node.linear_model = fit_linear_model(node.X, node.y)
+        else:
+            node.linear_model = None
         
         if not node.is_leaf:
             if node.left is not None:
@@ -52,10 +62,20 @@ class M5P:
             if node.right is not None:
                 self._add_linear_models(node.right)
     
-    def score(self, X, y):
+    def predict(self, X):
         from predict import predict
+        X = np.array(X, dtype=float)
+        return predict(self, X)
+    
+    def score(self, X, y):
+        X = np.array(X, dtype=float)
+        y = np.array(y, dtype=float)
         
-        y_pred = predict(self, X)
+        y_pred = self.predict(X)
         ss_res = np.sum((y - y_pred) ** 2)
         ss_tot = np.sum((y - np.mean(y)) ** 2)
+        
+        if ss_tot == 0:
+            return 0.0
+        
         return 1 - (ss_res / ss_tot)
