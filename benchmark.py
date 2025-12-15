@@ -1,12 +1,9 @@
-"""
-M5P Benchmarking Script - Member 3
-"""
 
 import numpy as np
 from sklearn.datasets import load_diabetes
 from sklearn.linear_model import LinearRegression
 from sklearn.tree import DecisionTreeRegressor
-from model import M5PModel
+from model import M5P
 from utils import train_test_split
 
 
@@ -81,7 +78,7 @@ def benchmark_diabetes():
     models = {
         'Linear Regression': LinearRegression(),
         'Decision Tree': DecisionTreeRegressor(max_depth=5, random_state=42),
-        'M5P (ours)': M5PModel(min_samples_split=10, min_samples_leaf=5, pruning=True, smoothing=True)
+        'M5P (ours)': M5P(min_samples_split=10, prune=True, smoothing=True)
     }
     
     results = {}
@@ -109,7 +106,7 @@ def benchmark_synthetic():
         'Decision Tree (d=3)': DecisionTreeRegressor(max_depth=3, random_state=42),
         'Decision Tree (d=5)': DecisionTreeRegressor(max_depth=5, random_state=42),
         'Decision Tree (d=10)': DecisionTreeRegressor(max_depth=10, random_state=42),
-        'M5P (ours)': M5PModel(min_samples_split=10, min_samples_leaf=5, pruning=True, smoothing=True)
+        'M5P (ours)': M5P(min_samples_split=10, prune=True, smoothing=True)
     }
     
     results = {}
@@ -129,10 +126,10 @@ def benchmark_pruning_smoothing():
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=123)
     
     configs = {
-        'M5P (no prune, no smooth)': M5PModel(pruning=False, smoothing=False),
-        'M5P (prune, no smooth)': M5PModel(pruning=True, smoothing=False),
-        'M5P (no prune, smooth)': M5PModel(pruning=False, smoothing=True),
-        'M5P (prune + smooth)': M5PModel(pruning=True, smoothing=True)
+        'M5P (no prune, no smooth)': M5P(prune=False, smoothing=False),
+        'M5P (prune, no smooth)': M5P(prune=True, smoothing=False),
+        'M5P (no prune, smooth)': M5P(prune=False, smoothing=True),
+        'M5P (prune + smooth)': M5P(prune=True, smoothing=True)
     }
     
     results = {}

@@ -14,16 +14,18 @@ X_train, X_test, y_train, y_test = train_test_split(
 )
 
 configs = [
-    {"prune": False, "smoothing": False, "name": "No pruning, no smoothing"},
-    {"prune": True, "smoothing": False, "name": "Pruning only"},
-    {"prune": False, "smoothing": True, "name": "Smoothing only"},
-    {"prune": True, "smoothing": True, "name": "Pruning and smoothing"},
+    {"prune": False, "smoothing": False, "penalty": 2.0, "name": "No pruning, no smoothing"},
+    {"prune": True, "smoothing": False, "penalty": 1.0, "name": "Pruning (penalty=1.0)"},
+    {"prune": True, "smoothing": False, "penalty": 2.0, "name": "Pruning (penalty=2.0)"},
+    {"prune": True, "smoothing": False, "penalty": 3.0, "name": "Pruning (penalty=3.0)"},
+    {"prune": False, "smoothing": True, "penalty": 2.0, "name": "Smoothing only"},
+    {"prune": True, "smoothing": True, "penalty": 2.0, "name": "Pruning + smoothing (penalty=2.0)"},
 ]
 
 param_sets = [
-    {"min_samples": 15, "depth": 5, "name": "Shallow trees", "threshold": 0.95},
-    {"min_samples": 8, "depth": 7, "name": "Medium trees", "threshold": 0.95},
-    {"min_samples": 5, "depth": 8, "name": "Deep trees", "threshold": 1.1},
+    {"min_samples": 15, "depth": 5, "name": "Shallow trees"},
+    {"min_samples": 8, "depth": 7, "name": "Medium trees"},
+    {"min_samples": 5, "depth": 8, "name": "Deep trees"},
 ]
 
 for params in param_sets:
@@ -35,7 +37,7 @@ for params in param_sets:
             max_depth=params["depth"],
             prune=config["prune"],
             smoothing=config["smoothing"],
-            prune_threshold=params["threshold"]
+            penalty_factor=config["penalty"]
         )
         
         model.fit(X_train, y_train)
@@ -58,12 +60,12 @@ for params in param_sets:
         })
     
     print(f"\nM5P Evaluation - {params['name']} (min_samples={params['min_samples']}, max_depth={params['depth']})")
-    print("=" * 90)
-    print(f"{'Configuration':<30} {'Nodes':>10} {'Leaves':>10} {'MAE':>15} {'RMSE':>15}")
-    print("-" * 90)
+    print("=" * 100)
+    print(f"{'Configuration':<40} {'Nodes':>10} {'Leaves':>10} {'MAE':>15} {'RMSE':>15}")
+    print("-" * 100)
     
     for r in results:
-        print(f"{r['config']:<30} {r['nodes']:>10} {r['leaves']:>10} {r['mae']:>15.2f} {r['rmse']:>15.2f}")
+        print(f"{r['config']:<40} {r['nodes']:>10} {r['leaves']:>10} {r['mae']:>15.2f} {r['rmse']:>15.2f}")
     
-    print("=" * 90)
+    print("=" * 100)
 
