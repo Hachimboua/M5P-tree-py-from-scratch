@@ -10,7 +10,6 @@ A complete implementation of the M5P model tree algorithm for regression tasks.
 - [Overview](#overview)
 - [Features](#features)
 - [Project Structure](#project-structure)
-- [Installation](#installation)
 - [Quick Start](#quick-start)
 - [Algorithm Details](#algorithm-details)
 - [Benchmarks](#benchmarks)
@@ -61,28 +60,7 @@ m5p-model-tree/
 ├── utils.py                 # Utility functions (metrics, data splitting)
 ├── benchmark.py             # Simple benchmarking script
 ├── benchmark_final.py       # Comprehensive evaluation suite
-├── README.md                # This file
-└── requirements.txt         # Python dependencies
-```
-
----
-
-## 🔧 Installation
-
-### Prerequisites
-- Python 3.7+
-- pip package manager
-
-### Install Dependencies
-```bash
-pip install -r requirements.txt
-```
-
-**Required packages:**
-```
-numpy>=1.19.0
-scikit-learn>=0.24.0
-matplotlib>=3.3.0
+└── README.md                # This file
 ```
 
 ---
@@ -352,5 +330,5 @@ For inquiries about this implementation:
 
 ---
 
-**Last Updated:** December 2024  
+**Last Updated:** December 2025  
 **Version:** 1.0.0
