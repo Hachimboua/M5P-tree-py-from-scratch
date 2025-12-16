@@ -1,7 +1,3 @@
-"""
-Utility Functions for M5P Implementation
-"""
-
 import numpy as np
 from typing import Tuple
 
