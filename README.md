@@ -307,7 +307,7 @@ Pruning + smoothing (penalty=2.0)            9          5           39.76       
 
 ## 📝 License
 
-This project is developed for educational purposes as part of the ENSAM Machine Learning course.
+This project is developed for educational purposes as part of the ENSAM Data Mining course.
 
 ---
 
