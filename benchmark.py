@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-from sklearn.datasets import load_diabetes
+from sklearn.datasets import fetch_california_housing, make_friedman1, load_wine
 from sklearn.linear_model import LinearRegression
 from sklearn.tree import DecisionTreeRegressor
 from model import M5P
@@ -21,24 +21,6 @@ def r2_score(y_true, y_pred):
     ss_res = np.sum((y_true - y_pred) ** 2)
     ss_tot = np.sum((y_true - np.mean(y_true)) ** 2)
     return 1 - (ss_res / ss_tot) if ss_tot > 0 else 0.0
-
-
-def generate_piecewise_linear_data(n_samples=500, noise=0.3, seed=42):
-    np.random.seed(seed)
-    X = np.random.uniform(-5, 5, (n_samples, 4))
-    y = np.zeros(n_samples)
-    
-    mask1 = X[:, 0] <= 0
-    y[mask1] = 3 * X[mask1, 0] + 2 * X[mask1, 1] - X[mask1, 2] + 10
-    
-    mask2 = (X[:, 0] > 0) & (X[:, 1] <= 0)
-    y[mask2] = -2 * X[mask2, 0] + 4 * X[mask2, 2] + X[mask2, 3] - 5
-    
-    mask3 = (X[:, 0] > 0) & (X[:, 1] > 0)
-    y[mask3] = X[mask3, 0] + X[mask3, 1] + 2 * X[mask3, 2] - X[mask3, 3]
-    
-    y += np.random.normal(0, noise, n_samples)
-    return X, y
 
 
 def evaluate_model(model, X_train, X_test, y_train, y_test):
@@ -195,34 +177,37 @@ def plot_ablation_heatmap(results, filename):
     print(f"  -> Plot saved: {filename}")
 
 
-def plot_final_summary(results_diabetes, results_synthetic, filename):
+def plot_final_summary(results_california, results_friedman, filename):
     fig, axes = plt.subplots(1, 2, figsize=(14, 6))
     fig.suptitle('M5P Model - Performance Summary', fontsize=16, fontweight='bold')
     
-    models_d = list(results_diabetes.keys())
-    r2_d = [results_diabetes[m]['R2'] for m in models_d]
-    colors_d = ['#3498db', '#e74c3c', '#2ecc71']
+    # California Housing
+    models_c = list(results_california.keys())
+    r2_c = [results_california[m]['R2'] for m in models_c]
+    colors_c = ['#3498db', '#e74c3c', '#2ecc71']
     
-    bars1 = axes[0].bar(models_d, r2_d, color=colors_d[:len(models_d)], edgecolor='black', linewidth=1.5)
+    bars1 = axes[0].bar(models_c, r2_c, color=colors_c[:len(models_c)], edgecolor='black', linewidth=1.5)
     axes[0].set_ylabel('R2 Score', fontsize=12)
-    axes[0].set_title('Diabetes Dataset', fontsize=13)
+    axes[0].set_title('California Housing Dataset', fontsize=13)
     axes[0].tick_params(axis='x', rotation=20)
     axes[0].axhline(y=0, color='gray', linestyle='--', alpha=0.5)
-    for bar, val in zip(bars1, r2_d):
+    axes[0].set_ylim(0, 1)
+    for bar, val in zip(bars1, r2_c):
         ypos = bar.get_height() + 0.02 if val >= 0 else bar.get_height() - 0.05
         axes[0].text(bar.get_x() + bar.get_width()/2, ypos, 
                      f'{val:.3f}', ha='center', va='bottom', fontsize=10, fontweight='bold')
     
-    models_s = list(results_synthetic.keys())
-    r2_s = [results_synthetic[m]['R2'] for m in models_s]
-    colors_s = ['#3498db', '#e74c3c', '#e74c3c', '#e74c3c', '#2ecc71']
+    # Friedman #1
+    models_f = list(results_friedman.keys())
+    r2_f = [results_friedman[m]['R2'] for m in models_f]
+    colors_f = ['#3498db', '#e74c3c', '#e74c3c', '#e74c3c', '#2ecc71']
     
-    bars2 = axes[1].bar(models_s, r2_s, color=colors_s[:len(models_s)], edgecolor='black', linewidth=1.5)
+    bars2 = axes[1].bar(models_f, r2_f, color=colors_f[:len(models_f)], edgecolor='black', linewidth=1.5)
     axes[1].set_ylabel('R2 Score', fontsize=12)
-    axes[1].set_title('Synthetic Piecewise-Linear Dataset', fontsize=13)
+    axes[1].set_title('Friedman #1 Dataset', fontsize=13)
     axes[1].set_ylim(0, 1.1)
     axes[1].tick_params(axis='x', rotation=30)
-    for bar, val in zip(bars2, r2_s):
+    for bar, val in zip(bars2, r2_f):
         axes[1].text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.02, 
                      f'{val:.3f}', ha='center', va='bottom', fontsize=9, fontweight='bold')
     
@@ -232,49 +217,61 @@ def plot_final_summary(results_diabetes, results_synthetic, filename):
     print(f"  -> Plot saved: {filename}")
 
 
-def benchmark_diabetes():
+def benchmark_california_housing():
     print("\n" + "#"*60)
-    print(" BENCHMARK 1: Sklearn Diabetes Dataset")
+    print(" BENCHMARK 1: California Housing Dataset (sklearn)")
     print("#"*60)
     
-    diabetes = load_diabetes()
-    X, y = diabetes.data, diabetes.target
+    # Charger California Housing
+    california = fetch_california_housing()
+    X, y = california.data, california.target
+    
+    # Sous-échantillonner pour accélérer (2000 samples)
+    np.random.seed(42)
+    idx = np.random.choice(len(y), size=2000, replace=False)
+    X, y = X[idx], y[idx]
     
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
     
-    print(f"\nDataset: {X.shape[0]} samples, {X.shape[1]} features")
+    print(f"\nDataset: California Housing (House Prices)")
+    print(f"Samples: {X.shape[0]}, Features: {X.shape[1]}")
+    print(f"Features: MedInc, HouseAge, AveRooms, AveBedrms, Population, AveOccup, Latitude, Longitude")
+    print(f"Target: Median house value (in $100,000)")
     print(f"Train: {len(y_train)}, Test: {len(y_test)}")
     
     models = {
         'Linear Regression': LinearRegression(),
         'Decision Tree': DecisionTreeRegressor(max_depth=5, random_state=42),
-        'M5P (ours)': M5P(min_samples_split=20, max_depth=4, prune=True, smoothing=True, penalty_factor=2.0)
+        'M5P (ours)': M5P(min_samples_split=20, max_depth=5, prune=True, smoothing=True, penalty_factor=2.0)
     }
     
     results = {}
     for name, model in models.items():
         results[name] = evaluate_model(model, X_train, X_test, y_train, y_test)
     
-    print_results_table(results, "Diabetes Dataset Results")
+    print_results_table(results, "California Housing Results")
     
-    plot_metrics_comparison(results, "Diabetes Dataset - Model Comparison", "diabetes_metrics.png")
-    plot_predictions_scatter(y_test, results, "Diabetes - Predictions vs Actual", "diabetes_scatter.png")
-    plot_residuals(y_test, results, "Diabetes - Residuals Analysis", "diabetes_residuals.png")
+    plot_metrics_comparison(results, "California Housing - Model Comparison", "california_metrics.png")
+    plot_predictions_scatter(y_test, results, "California Housing - Predictions vs Actual", "california_scatter.png")
+    plot_residuals(y_test, results, "California Housing - Residuals Analysis", "california_residuals.png")
     
     return results, y_test
 
 
-def benchmark_synthetic():
+def benchmark_friedman():
     print("\n" + "#"*60)
-    print(" BENCHMARK 2: Synthetic Piecewise-Linear Dataset")
+    print(" BENCHMARK 2: Friedman #1 Dataset (sklearn)")
     print("#"*60)
     
-    X, y = generate_piecewise_linear_data(n_samples=600, noise=0.5)
+    # Friedman #1: y = 10*sin(pi*x1*x2) + 20*(x3-0.5)^2 + 10*x4 + 5*x5 + noise
+    X, y = make_friedman1(n_samples=1000, n_features=10, noise=1.0, random_state=42)
+    
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
     
-    print(f"\nDataset: {X.shape[0]} samples, {X.shape[1]} features")
+    print(f"\nDataset: Friedman #1 (Regression Benchmark)")
+    print(f"Samples: {X.shape[0]}, Features: {X.shape[1]}")
+    print(f"Formula: y = 10*sin(pi*x1*x2) + 20*(x3-0.5)^2 + 10*x4 + 5*x5 + noise")
     print(f"Train: {len(y_train)}, Test: {len(y_test)}")
-    print("Data type: Piecewise linear with 3 distinct regions")
     
     models = {
         'Linear Regression': LinearRegression(),
@@ -288,11 +285,11 @@ def benchmark_synthetic():
     for name, model in models.items():
         results[name] = evaluate_model(model, X_train, X_test, y_train, y_test)
     
-    print_results_table(results, "Synthetic Piecewise-Linear Results")
+    print_results_table(results, "Friedman #1 Results")
     
-    plot_metrics_comparison(results, "Synthetic Data - Model Comparison", "synthetic_metrics.png")
-    plot_predictions_scatter(y_test, results, "Synthetic - Predictions vs Actual", "synthetic_scatter.png")
-    plot_residuals(y_test, results, "Synthetic - Residuals Analysis", "synthetic_residuals.png")
+    plot_metrics_comparison(results, "Friedman #1 - Model Comparison", "friedman_metrics.png")
+    plot_predictions_scatter(y_test, results, "Friedman #1 - Predictions vs Actual", "friedman_scatter.png")
+    plot_residuals(y_test, results, "Friedman #1 - Residuals Analysis", "friedman_residuals.png")
     
     return results, y_test
 
@@ -302,8 +299,12 @@ def benchmark_pruning_smoothing():
     print(" BENCHMARK 3: Pruning & Smoothing Analysis")
     print("#"*60)
     
-    X, y = generate_piecewise_linear_data(n_samples=500, noise=0.8)
+    # Utiliser Friedman pour l'ablation study
+    X, y = make_friedman1(n_samples=800, n_features=10, noise=1.5, random_state=123)
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=123)
+    
+    print(f"\nDataset: Friedman #1 (with more noise for ablation)")
+    print(f"Train: {len(y_train)}, Test: {len(y_test)}")
     
     configs = {
         'No Prune, No Smooth': M5P(min_samples_split=15, max_depth=5, prune=False, smoothing=False),
@@ -331,23 +332,23 @@ def main():
     print(" Member 3 - ENSAM Project")
     print("="*60)
     
-    results_diabetes, y_test_d = benchmark_diabetes()
-    results_synthetic, y_test_s = benchmark_synthetic()
+    results_california, y_test_c = benchmark_california_housing()
+    results_friedman, y_test_f = benchmark_friedman()
     results_ablation, y_test_a = benchmark_pruning_smoothing()
     
-    plot_final_summary(results_diabetes, results_synthetic, "final_summary.png")
+    plot_final_summary(results_california, results_friedman, "final_summary.png")
     
     print("\n" + "="*60)
     print(" SUMMARY")
     print("="*60)
     
-    print("\n[Diabetes Dataset]")
-    best_d = max(results_diabetes.keys(), key=lambda x: results_diabetes[x]['R2'])
-    print(f"  Best model: {best_d} (R2 = {results_diabetes[best_d]['R2']:.4f})")
+    print("\n[California Housing Dataset]")
+    best_c = max(results_california.keys(), key=lambda x: results_california[x]['R2'])
+    print(f"  Best model: {best_c} (R2 = {results_california[best_c]['R2']:.4f})")
     
-    print("\n[Synthetic Piecewise-Linear]")
-    best_s = max(results_synthetic.keys(), key=lambda x: results_synthetic[x]['R2'])
-    print(f"  Best model: {best_s} (R2 = {results_synthetic[best_s]['R2']:.4f})")
+    print("\n[Friedman #1 Dataset]")
+    best_f = max(results_friedman.keys(), key=lambda x: results_friedman[x]['R2'])
+    print(f"  Best model: {best_f} (R2 = {results_friedman[best_f]['R2']:.4f})")
     
     print("\n[Ablation Study]")
     best_a = max(results_ablation.keys(), key=lambda x: results_ablation[x]['R2'])
@@ -356,12 +357,12 @@ def main():
     print("\n" + "="*60)
     print(" PLOTS GENERATED:")
     print("="*60)
-    print("  - diabetes_metrics.png")
-    print("  - diabetes_scatter.png")
-    print("  - diabetes_residuals.png")
-    print("  - synthetic_metrics.png")
-    print("  - synthetic_scatter.png")
-    print("  - synthetic_residuals.png")
+    print("  - california_metrics.png")
+    print("  - california_scatter.png")
+    print("  - california_residuals.png")
+    print("  - friedman_metrics.png")
+    print("  - friedman_scatter.png")
+    print("  - friedman_residuals.png")
     print("  - ablation_metrics.png")
     print("  - ablation_heatmap.png")
     print("  - ablation_scatter.png")
