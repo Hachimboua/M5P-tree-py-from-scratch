@@ -59,7 +59,6 @@ m5p-model-tree/
 ├── predict.py               # Prediction logic
 ├── utils.py                 # Utility functions (metrics, data splitting)
 ├── benchmark.py             # Simple benchmarking script
-├── benchmark_final.py       # Comprehensive evaluation suite
 └── README.md                # This file
 ```
 
