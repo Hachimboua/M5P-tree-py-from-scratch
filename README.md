@@ -106,10 +106,6 @@ python benchmark.py
 ```
 Tests different configurations (pruning/smoothing combinations) on the diabetes dataset.
 
-#### Comprehensive Benchmark
-```bash
-python benchmark_final.py
-```
 Runs three experiments:
 1. **California Housing** - Real-world dataset
 2. **Friedman #1** - Synthetic non-linear benchmark
