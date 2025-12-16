@@ -93,7 +93,7 @@ def normalize_features(X: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarra
     """
     mean = np.mean(X, axis=0)
     std = np.std(X, axis=0)
-    std[std == 0] = 1  # Avoid division by zero for constant features
+    std[std == 0] = 1
     
     X_normalized = (X - mean) / std
     

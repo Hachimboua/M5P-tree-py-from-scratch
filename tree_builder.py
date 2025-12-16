@@ -12,13 +12,11 @@ class TreeNode:
     """
     
     def __init__(self):
-        # Split information (for internal nodes)
         self.feature = None
         self.threshold = None
         self.left = None
         self.right = None
         
-        # Node statistics
         self.n_samples = 0
         self.std = 0.0
         self.is_leaf = False
@@ -78,33 +76,28 @@ class M5PTree:
         
         should_stop = False
         
-        # Check stopping criteria
         if n_samples < self.min_samples_split:
             should_stop = True
         
         if self.max_depth is not None and depth >= self.max_depth:
             should_stop = True
         
-        if node.std < 1e-7:  # All targets nearly identical
+        if node.std < 1e-7:
             should_stop = True
         
         if should_stop:
             node.is_leaf = True
             return node
         
-        # Find best split using SDR criterion
         split = find_best_split(X, y, self.min_samples_split)
         
-        # No valid split found (all features constant or min_samples violated)
         if split is None:
             node.is_leaf = True
             return node
         
-        # Create internal node with split rule
         node.feature = split['feature']
         node.threshold = split['threshold']
         
-        # Partition data and recursively build children
         left_mask = split['left_mask']
         right_mask = split['right_mask']
         
@@ -124,7 +117,6 @@ class M5PTree:
         if node.is_leaf:
             return node
         
-        # Follow split rule
         if x[node.feature] <= node.threshold:
             return self._traverse_to_leaf(x, node.left)
         else:

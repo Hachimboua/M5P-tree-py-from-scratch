@@ -24,9 +24,8 @@ def fit_linear_model(X, y):
     # Attempt OLS using least squares
     coeffs, residuals, rank, s = np.linalg.lstsq(X_with_bias, y, rcond=None)
     
-    # Fallback to Ridge if matrix is rank-deficient
     if rank < X_with_bias.shape[1]:
-        ridge_lambda = 1e-6  # Small regularization for stability
+        ridge_lambda = 1e-6
         XtX = X_with_bias.T @ X_with_bias
         Xty = X_with_bias.T @ y
         coeffs = np.linalg.solve(XtX + ridge_lambda * np.eye(n_features + 1), Xty)

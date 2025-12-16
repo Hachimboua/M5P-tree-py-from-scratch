@@ -32,14 +32,12 @@ def calculate_sdr(parent_vals, left_vals, right_vals):
     left_std = std_deviation(left_vals)
     right_std = std_deviation(right_vals)
     
-    # Weighted average of child standard deviations
     n_total = len(parent_vals)
     n_left = len(left_vals)
     n_right = len(right_vals)
     
     weighted_std = (n_left/n_total) * left_std + (n_right/n_total) * right_std
     
-    # Reduction in standard deviation
     return parent_std - weighted_std
 
 def find_split_for_feature(X, y, feature_idx, min_samples=2):
@@ -54,7 +52,6 @@ def find_split_for_feature(X, y, feature_idx, min_samples=2):
     feature_vals = X[:, feature_idx]
     unique_vals = np.unique(feature_vals)
     
-    # Cannot split if all values are identical
     if len(unique_vals) < 2:
         return None
     

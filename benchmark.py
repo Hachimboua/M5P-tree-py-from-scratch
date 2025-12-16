@@ -7,7 +7,7 @@ Compares M5P performance against baseline models on real-world datasets.
 
 import numpy as np
 import matplotlib
-matplotlib.use('Agg')  # Non-interactive backend for saving plots
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from sklearn.datasets import fetch_california_housing, make_friedman1
 from sklearn.linear_model import LinearRegression
@@ -16,9 +16,7 @@ from model import M5P
 from utils import train_test_split
 
 
-# =============================================================================
 # EVALUATION METRICS
-# =============================================================================
 
 def mean_absolute_error(y_true, y_pred):
     """Mean Absolute Error - average prediction deviation."""
@@ -37,9 +35,7 @@ def r2_score(y_true, y_pred):
     return 1 - (ss_res / ss_tot) if ss_tot > 0 else 0.0
 
 
-# =============================================================================
 # EVALUATION AND DISPLAY FUNCTIONS
-# =============================================================================
 
 def evaluate_model(model, X_train, X_test, y_train, y_test):
     """Train model and compute test metrics."""
@@ -50,7 +46,7 @@ def evaluate_model(model, X_train, X_test, y_train, y_test):
         'MAE': mean_absolute_error(y_test, y_pred),
         'RMSE': root_mean_squared_error(y_test, y_pred),
         'R2': r2_score(y_test, y_pred),
-        'y_pred': y_pred  # Stored for visualization
+        'y_pred': y_pred
     }
 
 
@@ -67,9 +63,7 @@ def print_results_table(results, title):
     print(f"{'='*60}")
 
 
-# =============================================================================
 # VISUALIZATION FUNCTIONS
-# =============================================================================
 
 def plot_metrics_comparison(results, title, filename):
     """Bar chart comparing MAE, RMSE, and R² across models."""
@@ -164,11 +158,11 @@ def plot_residuals(y_test, results, title, filename):
     
     for i, (model_name, metrics) in enumerate(results.items()):
         y_pred = metrics['y_pred']
-        residuals = y_test - y_pred  # Error = actual - predicted
+        residuals = y_test - y_pred
         
         axes[i].scatter(y_pred, residuals, alpha=0.5, color=colors[i % len(colors)], 
                        s=30, edgecolor='black', linewidth=0.3)
-        axes[i].axhline(y=0, color='r', linestyle='--', linewidth=2)  # Zero line
+        axes[i].axhline(y=0, color='r', linestyle='--', linewidth=2)
         
         axes[i].set_xlabel('Predicted', fontsize=11)
         axes[i].set_ylabel('Residuals', fontsize=11)
@@ -258,9 +252,7 @@ def plot_final_summary(results_california, results_friedman, filename):
     print(f"  -> Plot saved: {filename}")
 
 
-# =============================================================================
 # BENCHMARKS
-# =============================================================================
 
 def benchmark_california_housing():
     """
@@ -420,9 +412,7 @@ def benchmark_pruning_smoothing():
     return results, y_test
 
 
-# =============================================================================
 # MAIN
-# =============================================================================
 
 def main():
     """Main entry point - runs all benchmarks."""

@@ -13,9 +13,9 @@ class M5P:
                  penalty_factor=2.0):
         self.min_samples_split = min_samples_split
         self.max_depth = max_depth
-        self.prune = prune  # Apply post-pruning
-        self.smoothing = smoothing  # Apply M5 smoothing
-        self.penalty_factor = penalty_factor  # Pruning Factor (Weka standard: 2.0)
+        self.prune = prune
+        self.smoothing = smoothing
+        self.penalty_factor = penalty_factor
         self.tree = None
     
     def fit(self, X, y):
