@@ -38,49 +38,35 @@ def count_subtree_params(node):
     return count_subtree_params(node.left) + count_subtree_params(node.right)
 
 
-def adjusted_error(raw_error, n_samples, n_params, penalty_factor=1.0, use_weka_formula=False):
+def adjusted_error(raw_error, n_samples, n_params, penalty_factor=2.0):
     """
-    Calcule l'erreur ajustée avec pénalité de complexité.
+    Calcule l'erreur ajustée avec pénalité de complexité (formule Weka standard).
     
-    Deux formules disponibles:
+    Formule M5P originale (Quinlan/Witten):
+    E_adjusted = E_raw * (n + PF * p) / (n - p)
     
-    1. AIC (défaut): E_adjusted = E_raw * (1 + penalty_factor * p / n)
-       • Pénalité linéaire
-       • Robuste pour arbres profonds
-       • Pas d'explosion quand n → p
-    
-    2. Weka (originale M5P): E_adjusted = E_raw * (n + PF * p) / (n - p)
-       • Formule standard de Quinlan/Witten
-       • Fonctionne bien pour arbres peu profonds
-       • Peut exploser si p/n élevé
+    où:
+        - n: nombre d'échantillons
+        - p: nombre de paramètres
+        - PF: Pruning Factor (défaut=2.0 dans Weka)
     
     Args:
         raw_error: Erreur brute (MSE)
         n_samples: Nombre d'échantillons
         n_params: Nombre de paramètres
-        penalty_factor: Facteur multiplicatif (défaut=1.0)
-                       AIC: 1.0 = standard, 2.0 = recommandé
-                       Weka: 2.0 = standard (PF dans la formule)
-        use_weka_formula: Si True, utilise formule Weka (n+PF*p)/(n-p)
-                         Si False, utilise formule AIC (défaut)
+        penalty_factor: Pruning Factor (défaut=2.0, standard Weka)
     
     Returns:
         float: Erreur ajustée avec pénalité
     """
-    if n_samples == 0:
+    if n_samples == 0 or n_samples <= n_params:
         return np.inf
     
-    if use_weka_formula:
-        if n_samples <= n_params:
-            return np.inf
-        penalty = (n_samples + penalty_factor * n_params) / (n_samples - n_params)
-    else:
-        penalty = 1.0 + penalty_factor * n_params / n_samples
-    
+    penalty = (n_samples + penalty_factor * n_params) / (n_samples - n_params)
     return raw_error * penalty
 
 
-def subtree_adjusted_error(node, penalty_factor=1.0, use_weka_formula=False):
+def subtree_adjusted_error(node, penalty_factor=2.0):
     """
     Calcule l'erreur ajustée totale d'un sous-arbre.
     
@@ -91,8 +77,7 @@ def subtree_adjusted_error(node, penalty_factor=1.0, use_weka_formula=False):
     
     Args:
         node: Racine du sous-arbre
-        penalty_factor: Facteur de pénalité de complexité
-        use_weka_formula: Si True, utilise formule Weka originale
+        penalty_factor: Facteur de pénalité de complexité (Pruning Factor)
     
     Returns:
         float: Erreur ajustée du sous-arbre
@@ -100,21 +85,21 @@ def subtree_adjusted_error(node, penalty_factor=1.0, use_weka_formula=False):
     if node.is_leaf:
         raw_err = compute_mse(node, node.linear_model)
         n_params = len(node.linear_model['coefficients']) + 1
-        return adjusted_error(raw_err, len(node.y), n_params, penalty_factor, use_weka_formula)
+        return adjusted_error(raw_err, len(node.y), n_params, penalty_factor)
     
     left_samples = len(node.left.y)
     right_samples = len(node.right.y)
     total_samples = left_samples + right_samples
     
-    left_err = subtree_adjusted_error(node.left, penalty_factor, use_weka_formula) * left_samples
-    right_err = subtree_adjusted_error(node.right, penalty_factor, use_weka_formula) * right_samples
+    left_err = subtree_adjusted_error(node.left, penalty_factor) * left_samples
+    right_err = subtree_adjusted_error(node.right, penalty_factor) * right_samples
     
     return (left_err + right_err) / total_samples
 
 
-def prune_tree(node, penalty_factor=2.0, use_weka_formula=False):
+def prune_tree(node, penalty_factor=2.0):
     """
-    Élagage bottom-up basé sur la comparaison des erreurs ajustées.
+    Élagage bottom-up basé sur la comparaison des erreurs ajustées (formule Weka standard).
     
     Algorithme:
         1. Élaguer récursivement les enfants (post-order)
@@ -122,29 +107,27 @@ def prune_tree(node, penalty_factor=2.0, use_weka_formula=False):
         3. Calculer l'erreur ajustée d'un modèle linéaire unique au nœud
         4. Remplacer le sous-arbre si: E_linear_adjusted ≤ E_subtree_adjusted
     
+    Utilise la formule M5P originale: E_adjusted = E_raw * (n + PF*v)/(n - v)
+    
     La pénalité de complexité favorise les modèles plus simples:
         - Sous-arbre: plus de paramètres → pénalité plus forte
         - Modèle unique: moins de paramètres → pénalité plus faible
     
     Args:
         node: Nœud racine du (sous-)arbre à élaguer
-        penalty_factor: Facteur de pénalité (défaut=2.0)
-                       AIC: 1.0-3.0 (2.0 recommandé)
-                       Weka: 2.0 standard (PF)
-        use_weka_formula: Si True, utilise formule Weka (n+PF*v)/(n-v)
-                         Si False, utilise formule AIC (défaut)
+        penalty_factor: Pruning Factor (défaut=2.0, standard Weka)
     """
     if node.is_leaf:
         return
     
-    prune_tree(node.left, penalty_factor, use_weka_formula)
-    prune_tree(node.right, penalty_factor, use_weka_formula)
+    prune_tree(node.left, penalty_factor)
+    prune_tree(node.right, penalty_factor)
     
-    subtree_err_adj = subtree_adjusted_error(node, penalty_factor, use_weka_formula)
+    subtree_err_adj = subtree_adjusted_error(node, penalty_factor)
     
     linear_raw_err = compute_mse(node, node.linear_model)
     n_params = len(node.linear_model['coefficients']) + 1
-    linear_err_adj = adjusted_error(linear_raw_err, len(node.y), n_params, penalty_factor, use_weka_formula)
+    linear_err_adj = adjusted_error(linear_raw_err, len(node.y), n_params, penalty_factor)
     
     if linear_err_adj <= subtree_err_adj:
         node.is_leaf = True

@@ -10,13 +10,12 @@ class M5P:
     Builds a tree with linear models at leaves instead of constant values.
     """
     def __init__(self, min_samples_split=10, max_depth=None, prune=True, smoothing=True, 
-                 penalty_factor=2.0, use_weka_formula=False):
+                 penalty_factor=2.0):
         self.min_samples_split = min_samples_split
         self.max_depth = max_depth
         self.prune = prune  # Apply post-pruning
         self.smoothing = smoothing  # Apply M5 smoothing
-        self.penalty_factor = penalty_factor  # Complexity penalty factor
-        self.use_weka_formula = use_weka_formula  # Use original Weka formula vs AIC
+        self.penalty_factor = penalty_factor  # Pruning Factor (Weka standard: 2.0)
         self.tree = None
     
     def fit(self, X, y):
@@ -36,7 +35,7 @@ class M5P:
         
         # Apply bottom-up pruning if requested
         if self.prune:
-            prune_tree(self.tree.root, self.penalty_factor, self.use_weka_formula)
+            prune_tree(self.tree.root, self.penalty_factor)
         
         # Apply M5 smoothing if requested
         if self.smoothing:
